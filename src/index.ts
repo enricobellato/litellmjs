@@ -36,7 +36,7 @@ export function getHandler(
   return mapping[providerType] || null;
 }
 
-class Provider {
+export class Provider {
   private apiKey: string;
   private baseUrl: string;
   private providerType: ProviderType;
