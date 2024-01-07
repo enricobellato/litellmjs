@@ -1,4 +1,5 @@
 import OpenAIWrapper from './providers/openai';
+import OllamaWrapper from './providers/ollama';
 import {
   Handler,
   HandlerParams,
@@ -18,6 +19,7 @@ interface ProviderParams {
 
 enum ProviderType {
   OpenAI,
+  Ollama,
 }
 
 export function getHandler(
@@ -35,9 +37,11 @@ export class Provider {
     ProviderType,
     (apiKey: string, baseUrl: string) => IProviderWrapper
   > = {
-    [ProviderType.OpenAI]: (apiKey, baseUrl) =>
+      [ProviderType.OpenAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
-    };
+      [ProviderType.Ollama]: (apiKey, baseUrl) =>
+      new OllamaWrapper(apiKey, baseUrl),
+  };
 
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey;
