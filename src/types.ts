@@ -64,14 +64,12 @@ export interface HandlerParamsBase {
   model: string;
   messages: Message[];
   stream?: boolean | null;
-  baseUrl?: string;
   temperature?: number | null;
   top_p?: number | null;
   stop?: string | null | string[];
   presence_penalty?: number | null;
   n?: number | null;
   max_tokens?: number | null;
-  apiKey?: string;
   functions?: ChatCompletionCreateParams.Function[];
   function_call?:
     | 'none'
@@ -93,3 +91,12 @@ export type Handler = (params: HandlerParams) => Promise<Result>;
 export type EmbeddingHandler = (
   params: EmbeddingParams,
 ) => Promise<EmbeddingResponse>;
+
+export interface IProviderWrapper {
+  completions(
+    params: HandlerParams & { stream: true },
+  ): Promise<ResultStreaming>;
+  completions(
+    params: HandlerParams & { stream?: false },
+  ): Promise<ResultNotStreaming>;
+}

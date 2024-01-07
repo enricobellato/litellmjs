@@ -1,13 +1,6 @@
 export { completion } from './completion';
 export { embedding } from './embedding';
-import { AnthropicHandler } from './handlers/anthropic';
-import { CohereHandler } from './handlers/cohere';
-import { OllamaHandler } from './handlers/ollama';
-import { OpenAIHandler } from './handlers/openai';
-import { AI21Handler } from './handlers/ai21';
-import { ReplicateHandler } from './handlers/replicate';
-import { DeepInfraHandler } from './handlers/deepinfra';
-import { MistralHandler } from './handlers/mistral';
+import OpenAIWrapper from './providers/openai';
 import {
   Handler,
   HandlerParams,
@@ -16,6 +9,7 @@ import {
   Result,
   ResultNotStreaming,
   ResultStreaming,
+  IProviderWrapper,
 } from './types';
 
 interface ProviderParams {
@@ -26,7 +20,6 @@ interface ProviderParams {
 
 enum ProviderType {
   OpenAI,
-  Mistral,
 }
 
 export function getHandler(
@@ -40,6 +33,13 @@ export class Provider {
   private apiKey: string;
   private baseUrl: string;
   private providerType: ProviderType;
+  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<
+    ProviderType,
+    (apiKey: string, baseUrl: string) => IProviderWrapper
+  > = {
+      [ProviderType.OpenAI]: (apiKey, baseUrl) =>
+        new OpenAIWrapper(apiKey, baseUrl),
+  };
 
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey;
@@ -47,31 +47,35 @@ export class Provider {
     this.providerType = params.providerType;
   }
 
-  PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType, Handler> = {
-    [ProviderType.OpenAI]: OpenAIHandler,
-    [ProviderType.Mistral]: MistralHandler,
-  };
-
   async completion(
-    params: HandlerParamsNotStreaming,
+    params: HandlerParamsNotStreaming & { stream: false },
   ): Promise<ResultNotStreaming>;
 
-  async completion(params: HandlerParamsStreaming): Promise<ResultStreaming>;
-
-  async completion(params: HandlerParams): Promise<Result>;
+  async completion(
+    params: HandlerParamsStreaming & { stream?: true },
+  ): Promise<ResultStreaming>;
 
   async completion(params: HandlerParams): Promise<Result> {
-    const handler = getHandler(
-      this.providerType,
-      this.PROVIDER_TYPE_HANDLER_MAPPINGS,
-    );
+    const clientCreationFunction =
+      Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
 
-    if (!handler) {
+    // Handle the case where there is no mapping for the given providerType
+    if (!clientCreationFunction) {
       throw new Error(
-        `Model: ${params.model} not supported. Cannot find a handler.`,
+        `Provider not supported for provider type: ${this.providerType}`,
       );
     }
 
-    return handler(params);
+    // Instantiate the correct provider wrapper
+    const client = clientCreationFunction(this.apiKey, this.baseUrl);
+
+    // Call the completions method on the handler with necessary params
+    if (params.stream === true) {
+      return client.completions(
+        params as HandlerParamsStreaming & { stream: true },
+      );
+    } else {
+      return client.completions(params as HandlerParamsNotStreaming);
+    }
   }
 }
