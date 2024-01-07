@@ -4,12 +4,8 @@
   "description": "JS Implementation of LiteLLM",
   "main": "dist/src/index.js",
   "scripts": {
-    "test": "jest --group=-e2e",
-    "test:e2e": "jest --group=e2e --verbose=true",
     "build": "tsc",
-    "prebuild": "npm run test",
-    "prepublish": "npm run build",
-    "lint": "eslint ./src ./tests"
+    "lint": "eslint ./src"
   },
   "author": "zya",
   "license": "ISC",

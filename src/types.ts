@@ -1,5 +1,4 @@
 import { ChatCompletionCreateParams } from 'openai/resources/chat/completions';
-import { EmbeddingParams, EmbeddingResponse } from './embedding';
 
 export type Role = 'system' | 'user' | 'assistant' | 'function';
 
@@ -88,9 +87,6 @@ export interface HandlerParamsNotStreaming extends HandlerParamsBase {
 export type HandlerParams = HandlerParamsStreaming | HandlerParamsNotStreaming;
 
 export type Handler = (params: HandlerParams) => Promise<Result>;
-export type EmbeddingHandler = (
-  params: EmbeddingParams,
-) => Promise<EmbeddingResponse>;
 
 export interface IProviderWrapper {
   completions(

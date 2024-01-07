@@ -1,5 +1,3 @@
-export { completion } from './completion';
-export { embedding } from './embedding';
 import OpenAIWrapper from './providers/openai';
 import {
   Handler,
@@ -37,9 +35,9 @@ export class Provider {
     ProviderType,
     (apiKey: string, baseUrl: string) => IProviderWrapper
   > = {
-      [ProviderType.OpenAI]: (apiKey, baseUrl) =>
-        new OpenAIWrapper(apiKey, baseUrl),
-  };
+    [ProviderType.OpenAI]: (apiKey, baseUrl) =>
+      new OpenAIWrapper(apiKey, baseUrl),
+    };
 
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey;
